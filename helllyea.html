@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Verity™ - Sesli PDF Okuyucu</title>
+    
+    <!-- PWA Manifest (Uygulama adı Verity™ olarak güncellendi) -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIlZlcml0eeKEoiIsCiAgInNob3J0X25hbWUiOiAiVmVyaXR54oSiIiwKICAiZGVzY3JpcHRpb24iOiAiUERGIG9rdXlhIHZlIHNlc2x1IGRpbmxlbWVrIMOc2dpbiIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjMGEwYTFhIiwKICAidGhlbWVfY29sb3IiOiAiIzAwZDRmZiIsCiAgImljb25zIjogWwogICAgewogICAgICAic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCwlM0NzdmcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgMTAwIDEwMCclM0UlM0N0ZXh0IHg9JzUwJyB5PSc1MCcgdGV4dC1hbmNob3I9J21pZGRsZScgZHk9Jy4zNScgZm9udC1zaXplPSc3MCcgZm9udC1mYW1pbHk9J0FyaWFsJz4lRTIlOUMlOTUlRjAlOUYlOEYlQTclM0MvdGV4dCUzRSUzQy9zdmclM0UiLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a1a;
+            color: #eee;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: 12px;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* ===== UYGULAMA BAŞLIK ===== */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: rgba(20, 20, 37, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .app-header h1 {
+            font-size: 1.3rem;
+            color: #00d4ff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        .app-header h1 .trademark {
+            font-size: 0.7rem;
+            color: #88ddee;
+            font-weight: 400;
+        }
+
+        .app-header .badge {
+            font-size: 0.6rem;
+            background: rgba(0, 212, 255, 0.15);
+            padding: 2px 10px;
+            border-radius: 20px;
+            color: #00d4ff;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        /* ===== ANA KONTEYNER ===== */
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #141425;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 10px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.05);
+        }
+
+        /* ===== DOSYA YÜKLEME ===== */
+        .upload-area {
+            border: 2px dashed rgba(0, 212, 255, 0.3);
+            border-radius: 16px;
+            padding: 35px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+            background: rgba(0, 212, 255, 0.03);
+            position: relative;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .upload-area:active {
+            transform: scale(0.97);
+        }
+
+        .upload-area input[type="file"] {
+            display: none;
+        }
+
+        .upload-area .icon-big {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-area label {
+            cursor: pointer;
+            font-size: 1rem;
+            color: #aaa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .upload-area label span {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .upload-area .sub-text {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 6px;
+        }
+
+        .upload-area .file-name {
+            color: #00d4ff;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+
+        /* ===== KONTROLLER ===== */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            margin: 12px 0 16px 0;
+        }
+
+        .controls button {
+            background: #1a1a35;
+            color: #eee;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 50px;
+            min-width: 50px;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .controls button:active {
+            transform: scale(0.93);
+        }
+
+        .controls button.primary {
+            background: #00d4ff;
+            color: #0a0a1a;
+            border-color: #00d4ff;
+        }
+
+        .controls button.primary:active {
+            background: #4de0ff;
+        }
+
+        .controls button.danger {
+            background: #ff6b6b;
+            color: #fff;
+            border-color: #ff6b6b;
+        }
+
+        .controls button.danger:active {
+            background: #ff8787;
+        }
+
+        .controls button.active-sound {
+            background: #ff6b6b;
+            color: #fff;
+            animation: pulse 1s ease-in-out infinite;
+            border-color: #ff6b6b;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
+        }
+
+        .controls .page-info {
+            font-size: 0.9rem;
+            padding: 10px 18px;
+            background: #1a1a35;
+            border-radius: 14px;
+            min-width: 110px;
+            text-align: center;
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            font-weight: 500;
+        }
+
+        .controls input[type="number"] {
+            width: 65px;
+            padding: 10px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            background: #1a1a35;
+            color: #fff;
+            font-size: 1rem;
+            text-align: center;
+            min-height: 50px;
+        }
+
+        .controls input[type="number"]:focus {
+            outline: 2px solid #00d4ff;
+        }
+
+        /* ===== SES AYARLARI ===== */
+        .sound-settings {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            background: rgba(26, 26, 53, 0.7);
+            padding: 12px 16px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+            border: 1px solid rgba(0, 212, 255, 0.06);
+        }
+
+        .sound-settings label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #aaa;
+            flex-wrap: wrap;
+        }
+
+        .sound-settings select {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            background: #0a0a1a;
+            color: #fff;
+            font-size: 0.85rem;
+            max-width: 150px;
+        }
+
+        .sound-settings select:focus {
+            outline: 2px solid #00d4ff;
+        }
+
+        .sound-settings input[type="range"] {
+            width: 80px;
+            accent-color: #00d4ff;
+            height: 4px;
+        }
+
+        .sound-settings .range-value {
+            font-size: 0.75rem;
+            color: #00d4ff;
+            min-width: 35px;
+        }
+
+        .sound-settings .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .sound-settings input[type="checkbox"] {
+            width: 40px;
+            height: 22px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: #333;
+            border-radius: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+            flex-shrink: 0;
+        }
+
+        .sound-settings input[type="checkbox"]::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: #666;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .sound-settings input[type="checkbox"]:checked {
+            background: #00d4ff;
+        }
+
+        .sound-settings input[type="checkbox"]:checked::after {
+            left: 20px;
+            background: #fff;
+        }
+
+        /* ===== PDF GÖSTERİM ===== */
+        #pdf-container {
+            background: #0a0a1a;
+            border-radius: 14px;
+            padding: 12px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(0, 212, 255, 0.05);
+            overflow: hidden;
+            touch-action: pan-x pan-y;
+        }
+
+        #pdf-container canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .placeholder {
+            color: #555;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .placeholder .icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .placeholder small {
+            color: #444;
+        }
+
+        .loading {
+            color: #00d4ff;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* ===== OKUNAN METİN ===== */
+        .text-display {
+            background: rgba(26, 26, 53, 0.7);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-top: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            border-left: 4px solid #00d4ff;
+            font-size: 0.85rem;
+            line-height: 1.7;
+            color: #ccc;
+            display: none;
+            border: 1px solid rgba(0, 212, 255, 0.06);
+        }
+
+        .text-display.show {
+            display: block;
+        }
+
+        .text-display .highlight {
+            color: #00d4ff;
+            font-weight: 600;
+        }
+
+        .text-display .text-content {
+            color: #d0d0d0;
+        }
+
+        /* ===== DURUM ÇUBUĞU ===== */
+        .status-bar {
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            background: rgba(26, 26, 53, 0.5);
+            color: #666;
+            display: none;
+            border: 1px solid rgba(0, 212, 255, 0.05);
+        }
+
+        .status-bar.active {
+            display: block;
+            background: rgba(0, 212, 255, 0.06);
+            color: #00d4ff;
+        }
+
+        /* ===== BİLGİ NOTU ===== */
+        .info-note {
+            background: rgba(0, 212, 255, 0.05);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-top: 12px;
+            font-size: 0.75rem;
+            color: #88aacc;
+            border: 1px solid rgba(0, 212, 255, 0.06);
+            display: none;
+            text-align: center;
+        }
+
+        .info-note.show {
+            display: block;
+        }
+
+        /* ===== MOBİL ALT NAV ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(20, 20, 37, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 16px;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(0, 212, 255, 0.06);
+            z-index: 100;
+        }
+
+        .bottom-nav.show {
+            display: flex;
+        }
+
+        .bottom-nav button {
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 4px 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            touch-action: manipulation;
+        }
+
+        .bottom-nav button:active {
+            transform: scale(0.9);
+        }
+
+        .bottom-nav button .emoji {
+            font-size: 1.5rem;
+        }
+
+        .bottom-nav button.active {
+            color: #00d4ff;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            body { padding: 8px; padding-bottom: 80px; }
+            .container { padding: 12px; border-radius: 16px; }
+            .app-header h1 { font-size: 1rem; }
+            .app-header h1 .trademark { font-size: 0.55rem; }
+            .upload-area { padding: 25px 15px; min-height: 130px; }
+            .upload-area .icon-big { font-size: 2.8rem; }
+            .controls button { 
+                padding: 10px 12px; 
+                font-size: 0.75rem; 
+                min-height: 44px; 
+                min-width: 44px;
+            }
+            .controls .page-info { font-size: 0.8rem; padding: 8px 14px; min-width: 90px; }
+            .sound-settings { gap: 8px; padding: 10px 12px; }
+            .sound-settings select { max-width: 120px; font-size: 0.8rem; }
+            .sound-settings input[type="range"] { width: 60px; }
+            .text-display { font-size: 0.8rem; max-height: 120px; }
+            .bottom-nav button { padding: 4px 6px; }
+            .bottom-nav button .emoji { font-size: 1.2rem; }
+            .bottom-nav button { font-size: 0.6rem; }
+        }
+
+        @media (min-width: 768px) {
+            .controls button { min-height: 56px; padding: 14px 24px; }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        .text-display::-webkit-scrollbar {
+            width: 4px;
+        }
+        .text-display::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .text-display::-webkit-scrollbar-thumb {
+            background: #00d4ff44;
+            border-radius: 10px;
+        }
+
+        /* ===== YÜKLEME ANİMASYONU ===== */
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(0, 212, 255, 0.1);
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Reset butonu özel stili */
+        .controls button.reset-btn {
+            background: #ff6b6b;
+            color: #fff;
+            border-color: #ff6b6b;
+        }
+
+        .controls button.reset-btn:active {
+            background: #ff8787;
+        }
+
+        /* Verity™ özel başlık efekti */
+        .app-header .verity-glow {
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .app-header .tm-symbol {
+            color: #88ddee;
+            font-size: 0.6rem;
+            font-weight: 300;
+            margin-left: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== UYGULAMA BAŞLIĞI ===== -->
+    <div class="app-header">
+        <h1 class="verity-glow">
+            🎧 <span>Verity</span><span class="tm-symbol">™</span>
+        </h1>
+        <span class="badge">📱 Mobil</span>
+    </div>
+
+    <!-- ===== ANA KONTEYNER ===== -->
+    <div class="container">
+
+        <!-- DOSYA YÜKLEME -->
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="pdfFile" accept=".pdf" capture="false">
+            <div class="icon-big">📂</div>
+            <label for="pdfFile">
+                <span>PDF dosyası seç</span>
+                <small class="sub-text">veya buraya dokun</small>
+            </label>
+            <div class="file-name" id="fileName"></div>
+        </div>
+
+        <!-- SES AYARLARI -->
+        <div class="sound-settings" id="soundSettings" style="display: none;">
+            <label>
+                🗣️
+                <select id="voiceSelect"></select>
+            </label>
+            <label>
+                🐢
+                <input type="range" id="rateControl" min="0.6" max="1.8" step="0.05" value="0.95">
+                <span class="range-value" id="rateValue">0.95x</span>
+            </label>
+            <label>
+                🔊
+                <input type="range" id="volumeControl" min="0" max="1" step="0.05" value="1">
+                <span class="range-value" id="volumeValue">100%</span>
+            </label>
+            <label class="toggle-label">
+                <input type="checkbox" id="emphasisMode" checked>
+                🎯 Vurgu
+            </label>
+        </div>
+
+        <!-- KONTROLLER -->
+        <div class="controls" id="controls" style="display: none;">
+            <button id="prevBtn">◀</button>
+            <span class="page-info" id="pageInfo">1 / 1</span>
+            <button id="nextBtn">▶</button>
+            <input type="number" id="pageInput" min="1" value="1" placeholder="Sayfa">
+            <button class="primary" id="playBtn">▶️ Oku</button>
+            <button class="danger" id="stopBtn">⏹️ Durdur</button>
+            <button class="danger reset-btn" id="resetBtn">🔁 Reset</button>
+            <button id="autoPlayBtn">🔄</button>
+        </div>
+
+        <!-- PDF GÖSTERİM -->
+        <div id="pdf-container">
+            <div class="placeholder">
+                <span class="icon">📚</span>
+                <div>PDF yükleyin</div>
+                <small>Dokunarak seçin veya sürükleyin</small>
+            </div>
+        </div>
+
+        <!-- OKUNAN METİN -->
+        <div class="text-display" id="textDisplay">
+            <span class="highlight">📖 Okunan metin:</span>
+            <div class="text-content" id="spokenText">...</div>
+        </div>
+
+        <!-- BİLGİ -->
+        <div class="info-note" id="infoNote">
+            🎯 <strong>Akıcı okuma:</strong> Noktalama işaretlerine göre tonlama ve duraklama aktif.
+        </div>
+
+        <!-- DURUM -->
+        <div class="status-bar" id="statusBar">⏳ Hazır</div>
+    </div>
+
+    <!-- ===== MOBİL ALT NAV ===== -->
+    <div class="bottom-nav" id="bottomNav">
+        <button id="navPlay" class="active">
+            <span class="emoji">▶️</span>
+            Oku
+        </button>
+        <button id="navPrev">
+            <span class="emoji">⬅️</span>
+            Geri
+        </button>
+        <button id="navNext">
+            <span class="emoji">➡️</span>
+            İleri
+        </button>
+        <button id="navReset">
+            <span class="emoji">🔁</span>
+            Reset
+        </button>
+        <button id="navAuto">
+            <span class="emoji">🔄</span>
+            Otomatik
+        </button>
+    </div>
+
+    <script>
+        // ============================================================
+        // PDF.JS KURULUMU
+        // ============================================================
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // ============================================================
+        // DEĞİŞKENLER
+        // ============================================================
+        let pdfDoc = null;
+        let currentPage = 1;
+        let totalPages = 0;
+        let scale = 1.2;
+        let isPlaying = false;
+        let isAutoPlay = false;
+        let isPaused = false;
+        let pageTexts = {};
+        let stopSpeakingFn = null;
+
+        const container = document.getElementById('pdf-container');
+        const controls = document.getElementById('controls');
+        const soundSettings = document.getElementById('soundSettings');
+        const bottomNav = document.getElementById('bottomNav');
+        const fileInput = document.getElementById('pdfFile');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileName = document.getElementById('fileName');
+        const textDisplay = document.getElementById('textDisplay');
+        const spokenText = document.getElementById('spokenText');
+        const statusBar = document.getElementById('statusBar');
+        const infoNote = document.getElementById('infoNote');
+
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        const pageInput = document.getElementById('pageInput');
+        const playBtn = document.getElementById('playBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const autoPlayBtn = document.getElementById('autoPlayBtn');
+        const voiceSelect = document.getElementById('voiceSelect');
+        const rateControl = document.getElementById('rateControl');
+        const volumeControl = document.getElementById('volumeControl');
+        const rateValue = document.getElementById('rateValue');
+        const volumeValue = document.getElementById('volumeValue');
+        const emphasisMode = document.getElementById('emphasisMode');
+
+        // Mobil nav
+        const navPlay = document.getElementById('navPlay');
+        const navPrev = document.getElementById('navPrev');
+        const navNext = document.getElementById('navNext');
+        const navReset = document.getElementById('navReset');
+        const navAuto = document.getElementById('navAuto');
+
+        // ============================================================
+        // SES MOTORU
+        // ============================================================
+        function initVoices() {
+            const voices = speechSynthesis.getVoices();
+            voiceSelect.innerHTML = '';
+
+            const trVoices = voices.filter(v => v.lang.startsWith('tr'));
+            const enVoices = voices.filter(v => v.lang.startsWith('en'));
+            const otherVoices = voices.filter(v => !v.lang.startsWith('tr') && !v.lang.startsWith('en'));
+
+            const sorted = [...trVoices, ...enVoices, ...otherVoices];
+            if (sorted.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '⚠️ Ses yok';
+                voiceSelect.appendChild(opt);
+                return;
+            }
+
+            sorted.forEach(voice => {
+                const option = document.createElement('option');
+                option.value = voice.name;
+                const flag = voice.lang.startsWith('tr') ? '🇹🇷' :
+                    voice.lang.startsWith('en') ? '🇬🇧' : '🌍';
+                option.textContent = `${flag} ${voice.name}`;
+                voiceSelect.appendChild(option);
+            });
+
+            const trIndex = Array.from(voiceSelect.options).findIndex(o => o.text.includes('🇹🇷'));
+            voiceSelect.selectedIndex = trIndex >= 0 ? trIndex : 0;
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = initVoices;
+        }
+        setTimeout(initVoices, 300);
+
+        rateControl.addEventListener('input', () => {
+            rateValue.textContent = parseFloat(rateControl.value).toFixed(2) + 'x';
+        });
+
+        volumeControl.addEventListener('input', () => {
+            volumeValue.textContent = Math.round(volumeControl.value * 100) + '%';
+        });
+
+        // ============================================================
+        // METİN İŞLEME (Tonlama + Noktalama)
+        // ============================================================
+        function enhanceTextForSpeech(text) {
+            if (!text || text.trim() === '') return text;
+            let processed = text;
+
+            processed = processed.replace(/(Dr|Av|Prof|Doç|Yrd|Arş|Gör|Op|Uzm|Müh|Mim|Vb|Vs|Yz|Bkz|C|S|No)\./g, '$1.');
+            processed = processed.replace(/([^.!?]+)\?/g, (match, group) => `❓${group}?`);
+            processed = processed.replace(/([^.!?]+)\!/g, (match, group) => `❗${group}!`);
+            processed = processed.replace(/([;:,])([^\s])/g, '$1 $2');
+            processed = processed.replace(/\.\s/g, '.  ');
+            processed = processed.replace(/\.\.\./g, '... ');
+            processed = processed.replace(/["']/g, '');
+            processed = processed.replace(/\(([^)]+)\)/g, ' ( $1 ) ');
+            processed = processed.replace(/(\d+)\s*TL/g, '$1 Türk Lirası');
+            processed = processed.replace(/(\d+)\s*€/g, '$1 Euro');
+            processed = processed.replace(/(\d+)\s*\$ /g, '$1 Dolar');
+            processed = processed.replace(/(\d{2})\.(\d{2})\.(\d{4})/g, '$1 $2 $3');
+            processed = processed.replace(/\s+/g, ' ');
+            return processed.trim();
+        }
+
+        function splitIntoSentences(text) {
+            const sentences = [];
+            let current = '';
+            let i = 0;
+
+            while (i < text.length) {
+                current += text[i];
+                if (text[i] === '.' || text[i] === '!' || text[i] === '?') {
+                    if (text[i] === '?' && current.includes('❓')) {
+                        current = current.replace('❓', '');
+                        sentences.push(current.trim());
+                        current = '';
+                    } else if (text[i] === '!' && current.includes('❗')) {
+                        current = current.replace('❗', '');
+                        sentences.push(current.trim());
+                        current = '';
+                    } else if (text[i] === '.') {
+                        const prevChars = current.slice(-5, -1);
+                        if ([' Dr', ' Av', ' Yz', ' No', ' C.', ' S.'].some(k => prevChars.includes(k))) {
+                            // kısaltma
+                        } else {
+                            sentences.push(current.trim());
+                            current = '';
+                        }
+                    } else {
+                        sentences.push(current.trim());
+                        current = '';
+                    }
+                }
+                i++;
+            }
+            if (current.trim()) sentences.push(current.trim());
+            return sentences.filter(s => s.length > 1);
+        }
+
+        // ============================================================
+        // AKILLI SESLİ OKUMA
+        // ============================================================
+        function speakWithIntonation(text, callback) {
+            if (!text || text.trim() === '') {
+                statusBar.textContent = '⚠️ Okunacak metin yok';
+                return;
+            }
+
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+
+            const enhanced = enhanceTextForSpeech(text);
+            const sentences = splitIntoSentences(enhanced);
+
+            if (sentences.length === 0) {
+                statusBar.textContent = '⚠️ Okunabilir cümle yok';
+                return;
+            }
+
+            spokenText.textContent = enhanced.substring(0, 300) + (enhanced.length > 300 ? '...' : '');
+            textDisplay.classList.add('show');
+            infoNote.classList.add('show');
+
+            let sentenceIndex = 0;
+            let cancelled = false;
+
+            function speakNext() {
+                if (cancelled || sentenceIndex >= sentences.length) {
+                    if (callback) callback();
+                    isPlaying = false;
+                    playBtn.textContent = '▶️ Oku';
+                    playBtn.classList.remove('active-sound');
+                    navPlay.innerHTML = '<span class="emoji">▶️</span> Oku';
+                    statusBar.textContent = '✅ Okuma tamamlandı';
+                    statusBar.classList.remove('active');
+
+                    if (isAutoPlay && currentPage < totalPages) {
+                        setTimeout(() => {
+                            goToPage(currentPage + 1);
+                            setTimeout(() => readCurrentPage(), 400);
+                        }, 800);
+                    } else if (isAutoPlay && currentPage >= totalPages) {
+                        isAutoPlay = false;
+                        autoPlayBtn.textContent = '🔄';
+                        navAuto.innerHTML = '<span class="emoji">🔄</span> Otomatik';
+                        statusBar.textContent = '📖 Kitap bitti!';
+                    }
+                    return;
+                }
+
+                const sentence = sentences[sentenceIndex];
+                const utterance = new SpeechSynthesisUtterance(sentence);
+                const voices = speechSynthesis.getVoices();
+                const voice = voices.find(v => v.name === voiceSelect.value);
+                if (voice) utterance.voice = voice;
+
+                let rate = parseFloat(rateControl.value);
+                if (sentence.includes('?')) rate = Math.max(rate - 0.08, 0.5);
+                if (sentence.includes('!')) rate = Math.min(rate + 0.05, 1.8);
+                utterance.rate = rate;
+                utterance.volume = parseFloat(volumeControl.value);
+                utterance.lang = 'tr-TR';
+
+                if (emphasisMode.checked) {
+                    if (sentence.includes('?')) utterance.pitch = 1.3;
+                    else if (sentence.includes('!')) utterance.pitch = 1.2;
+                    else if (sentence.length < 30) utterance.pitch = 1.05;
+                    else utterance.pitch = 0.95;
+                } else {
+                    utterance.pitch = 1.0;
+                }
+
+                let pause = 300;
+                if (sentence.endsWith('.')) pause = 600;
+                else if (sentence.endsWith('?')) pause = 500;
+                else if (sentence.endsWith('!')) pause = 500;
+                else if (sentence.includes(',')) pause = 200;
+
+                utterance.onend = function() {
+                    sentenceIndex++;
+                    setTimeout(() => { if (!cancelled) speakNext(); }, pause);
+                };
+
+                utterance.onerror = function(e) {
+                    if (e.error !== 'canceled') {
+                        sentenceIndex++;
+                        speakNext();
+                    }
+                };
+
+                statusBar.textContent = `🔊 Konuşuyor... (${sentenceIndex + 1}/${sentences.length})`;
+                statusBar.classList.add('active');
+                window.speechSynthesis.speak(utterance);
+            }
+
+            isPlaying = true;
+            playBtn.textContent = '⏸️ Durdur';
+            playBtn.classList.add('active-sound');
+            navPlay.innerHTML = '<span class="emoji">⏸️</span> Durdur';
+            speakNext();
+
+            stopSpeakingFn = () => {
+                cancelled = true;
+                if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+                isPlaying = false;
+                playBtn.textContent = '▶️ Oku';
+                playBtn.classList.remove('active-sound');
+                navPlay.innerHTML = '<span class="emoji">▶️</span> Oku';
+                statusBar.textContent = '⏸️ Durduruldu';
+                statusBar.classList.remove('active');
+                if (callback) callback();
+            };
+        }
+
+        // ============================================================
+        // PDF METİN ÇIKARMA
+        // ============================================================
+        async function extractTextFromPage(pageNum) {
+            if (pageTexts[pageNum]) return pageTexts[pageNum];
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const text = textContent.items.map(item => item.str).join(' ');
+                const cleaned = text.replace(/\s+/g, ' ').trim();
+                pageTexts[pageNum] = cleaned || 'Bu sayfada metin yok.';
+                return pageTexts[pageNum];
+            } catch (e) {
+                return 'Metin çıkarılamadı.';
+            }
+        }
+
+        async function readCurrentPage() {
+            if (!pdfDoc) return;
+            const text = await extractTextFromPage(currentPage);
+            if (text && text.trim() !== '') {
+                speakWithIntonation(text);
+            } else {
+                statusBar.textContent = '⚠️ Bu sayfada metin yok';
+                if (isAutoPlay && currentPage < totalPages) {
+                    setTimeout(() => {
+                        goToPage(currentPage + 1);
+                        setTimeout(readCurrentPage, 500);
+                    }, 1500);
+                }
+            }
+        }
+
+        // ============================================================
+        // PDF YÜKLEME
+        // ============================================================
+        function loadPDF(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const typedarray = new Uint8Array(e.target.result);
+                pdfjsLib.getDocument({ data: typedarray }).promise.then(function(pdf) {
+                    pdfDoc = pdf;
+                    totalPages = pdf.numPages;
+                    currentPage = 1;
+                    pageTexts = {};
+                    scale = 1.2;
+
+                    controls.style.display = 'flex';
+                    soundSettings.style.display = 'flex';
+                    bottomNav.classList.add('show');
+                    fileName.textContent = `📄 ${file.name} (${totalPages} sayfa)`;
+                    fileName.style.display = 'block';
+
+                    renderPage(currentPage);
+
+                    statusBar.textContent = '✅ PDF yüklendi!';
+                    statusBar.classList.add('active');
+                    setTimeout(() => statusBar.classList.remove('active'), 2500);
+
+                }).catch(function(err) {
+                    alert('PDF yüklenemedi: ' + err.message);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // ============================================================
+        // SAYFA RENDER
+        // ============================================================
+        function renderPage(pageNum) {
+            if (!pdfDoc) return;
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><br>Yükleniyor...</div>';
+
+            pdfDoc.getPage(pageNum).then(function(page) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const viewport = page.getViewport({ scale: scale });
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+
+                page.render({ canvasContext: ctx, viewport: viewport }).promise.then(function() {
+                    container.innerHTML = '';
+                    container.appendChild(canvas);
+                    updateControls();
+
+                    extractTextFromPage(pageNum).then(text => {
+                        if (text && text.trim() !== '') {
+                            spokenText.textContent = text.substring(0, 200) + (text.length > 200 ? '...' :
+                            '');
+                            textDisplay.classList.add('show');
+                        }
+                    });
+                });
+            }).catch(function(err) {
+                container.innerHTML = `<div style="color:#ff6b6b;">❌ Hata: ${err.message}</div>`;
+            });
+        }
+
+        // ============================================================
+        // KONTROLLER
+        // ============================================================
+        function updateControls() {
+            pageInfo.textContent = `${currentPage} / ${totalPages}`;
+            pageInput.value = currentPage;
+            pageInput.max = totalPages;
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+
+        function goToPage(pageNum) {
+            if (!pdfDoc) return;
+            if (pageNum < 1) pageNum = 1;
+            if (pageNum > totalPages) pageNum = totalPages;
+
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            isPlaying = false;
+            playBtn.textContent = '▶️ Oku';
+            playBtn.classList.remove('active-sound');
+            navPlay.innerHTML = '<span class="emoji">▶️</span> Oku';
+
+            currentPage = pageNum;
+            renderPage(currentPage);
+        }
+
+        // ============================================================
+        // RESET FONKSİYONU
+        // ============================================================
+        function resetAll() {
+            // 1. Konuşmayı durdur
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+            if (stopSpeakingFn) stopSpeakingFn();
+
+            // 2. Tüm durumları sıfırla
+            isPlaying = false;
+            isAutoPlay = false;
+            isPaused = false;
+
+            // 3. Butonları güncelle
+            playBtn.textContent = '▶️ Oku';
+            playBtn.classList.remove('active-sound');
+            navPlay.innerHTML = '<span class="emoji">▶️</span> Oku';
+            autoPlayBtn.textContent = '🔄';
+            navAuto.innerHTML = '<span class="emoji">🔄</span> Otomatik';
+
+            // 4. Sayfayı başa (1. sayfaya) döndür
+            if (pdfDoc) {
+                currentPage = 1;
+                renderPage(currentPage);
+            }
+
+            // 5. Durum mesajı
+            statusBar.textContent = '🔄 Sıfırlandı - Sayfa 1';
+            statusBar.classList.add('active');
+            setTimeout(() => statusBar.classList.remove('active'), 2000);
+        }
+
+        // ============================================================
+        // EVENTLER
+        // ============================================================
+
+        // --- Dosya Yükleme ---
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                loadPDF(file);
+            } else {
+                alert('Lütfen geçerli bir PDF dosyası seçin.');
+            }
+        });
+
+        uploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        // --- Sayfa Geçişleri ---
+        prevBtn.addEventListener('click', () => goToPage(currentPage - 1));
+        nextBtn.addEventListener('click', () => goToPage(currentPage + 1));
+
+        navPrev.addEventListener('click', () => goToPage(currentPage - 1));
+        navNext.addEventListener('click', () => goToPage(currentPage + 1));
+
+        pageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                let val = parseInt(this.value);
+                if (isNaN(val) || val < 1) val = 1;
+                if (val > totalPages) val = totalPages;
+                goToPage(val);
+            }
+        });
+
+        // --- Oynat / Durdur ---
+        function togglePlay() {
+            if (!pdfDoc) return;
+            if (isPlaying) {
+                if (stopSpeakingFn) stopSpeakingFn();
+            } else {
+                readCurrentPage();
+            }
+        }
+
+        playBtn.addEventListener('click', togglePlay);
+        navPlay.addEventListener('click', togglePlay);
+
+        // --- Durdur ---
+        function stopAll() {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            if (stopSpeakingFn) stopSpeakingFn();
+            isPlaying = false;
+            playBtn.textContent = '▶️ Oku';
+            playBtn.classList.remove('active-sound');
+            navPlay.innerHTML = '<span class="emoji">▶️</span> Oku';
+            statusBar.textContent = '⏹️ Durduruldu';
+            statusBar.classList.remove('active');
+        }
+
+        stopBtn.addEventListener('click', stopAll);
+
+        // --- Reset ---
+        resetBtn.addEventListener('click', resetAll);
+        navReset.addEventListener('click', resetAll);
+
+        // --- Otomatik ---
+        function toggleAuto() {
+            if (!pdfDoc) return;
+            isAutoPlay = !isAutoPlay;
+            autoPlayBtn.textContent = isAutoPlay ? '⏹️' : '🔄';
+            navAuto.innerHTML = isAutoPlay ? '<span class="emoji">⏹️</span> Durdur' :
+                '<span class="emoji">🔄</span> Otomatik';
+
+            if (isAutoPlay) {
+                statusBar.textContent = '🔄 Otomatik başladı...';
+                statusBar.classList.add('active');
+                if (!isPlaying) readCurrentPage();
+            } else {
+                statusBar.textContent = '⏹️ Otomatik durduruldu';
+                statusBar.classList.remove('active');
+                if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+                isPlaying = false;
+                playBtn.textContent = '▶️ Oku';
+                playBtn.classList.remove('active-sound');
+                navPlay.innerHTML = '<span class="emoji">▶️</span> Oku';
+            }
+        }
+
+        autoPlayBtn.addEventListener('click', toggleAuto);
+        navAuto.addEventListener('click', toggleAuto);
+
+        // --- Klavye Kısayolları ---
+        document.addEventListener('keydown', function(e) {
+            if (!pdfDoc) return;
+            if (e.key === 'ArrowRight') { e.preventDefault();
+                goToPage(currentPage + 1); }
+            if (e.key === 'ArrowLeft') { e.preventDefault();
+                goToPage(currentPage - 1); }
+            if (e.key === ' ' || e.key === 'Space') { e.preventDefault();
+                togglePlay(); }
+            if (e.key === 'a' || e.key === 'A') { toggleAuto(); }
+            if (e.key === 'r' || e.key === 'R') { resetAll(); }
+        });
+
+        // ============================================================
+        // PWA - ANA EKRANA EKLEME
+        // ============================================================
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('📱 Verity™ uygulaması ana ekrana eklenebilir!');
+        });
+
+        console.log('🎧 Verity™ - Sesli PDF Okuyucu hazır!');
+        console.log('📱 Mobil uyumlu | PWA desteği | Akıcı okuma');
+        console.log('⌨️ Kısayollar: ← → sayfa, Space oku/durdur, A otomatik, R reset');
+    </script>
+
+</body>
+</html>
